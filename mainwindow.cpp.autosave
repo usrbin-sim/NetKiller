@@ -62,7 +62,7 @@ MainWindow::MainWindow(QWidget *parent)
     QStringList tableHeader;
     tableHeader << "Interface" << "GW IP" << "Broadcast Attack";
     ui->gwTable->setColumnCount(3);
-    ui->gwTable->setHorizontalHeaderLabels(tableHeader); // Table Header 설정
+    ui->gwTable->setHorizontalHeaderLabels(tableHeader); 
     ui->gwTable->horizontalHeader()->setStretchLastSection(true);
 
     ui->gwTable->setColumnWidth(1, 400);

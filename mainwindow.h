@@ -34,6 +34,7 @@ public:
 
 public slots:
     void braodAttack();
+    void unicastAttack();
     void processCaptured(char* data);
 
 private:
