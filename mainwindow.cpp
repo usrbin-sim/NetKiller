@@ -12,28 +12,28 @@ MainWindow::MainWindow(QWidget *parent)
     timer->start();
     timer->setInterval(1000);
 
-    // system("su -c \"/data/local/tmp/netkillerd&\"");
+    system("su -c \"/data/local/tmp/netkillerd&\"");
 
     // Check if server is running
     char tmp_buf[1024] = {0,};
     FILE *fp = popen("su -c \"ps | grep netkillerd\"", "rt");
     while(fgets(tmp_buf, 1024,fp)){
-        if(strstr(tmp_buf, "ARPAttackServer") != NULL){
+        if(strstr(tmp_buf, "netkillerd") != NULL){
             ret = 1;
             break;
         }
     }
 
     if(ret == 0){
-        //        char msg[20] = {0,};
-        //        QMessageBox MsgBox;
-        //        MsgBox.setWindowTitle("Error");
-        //        MsgBox.setText("Server is not running");
-        //        MsgBox.setStandardButtons(QMessageBox::Ok);
-        //        MsgBox.setDefaultButton(QMessageBox::Ok);
-        //        if ( MsgBox.exec() == QMessageBox::Ok ){
-        //            exit(1);
-        //        }
+                char msg[20] = {0,};
+                QMessageBox MsgBox;
+                MsgBox.setWindowTitle("Error");
+                MsgBox.setText("Server is not running");
+                MsgBox.setStandardButtons(QMessageBox::Ok);
+                MsgBox.setDefaultButton(QMessageBox::Ok);
+                if ( MsgBox.exec() == QMessageBox::Ok ){
+                    exit(1);
+                }
     }
 
     /* Get basic informations */
@@ -62,7 +62,7 @@ MainWindow::MainWindow(QWidget *parent)
     QStringList tableHeader;
     tableHeader << "Interface" << "GW IP" << "Broadcast Attack";
     ui->gwTable->setColumnCount(3);
-    ui->gwTable->setHorizontalHeaderLabels(tableHeader); // Table Header 설정
+    ui->gwTable->setHorizontalHeaderLabels(tableHeader);
     ui->gwTable->horizontalHeader()->setStretchLastSection(true);
 
     ui->gwTable->setColumnWidth(1, 400);
@@ -190,7 +190,10 @@ void MainWindow::unicastAttack(){
         MsgBox.setStandardButtons(QMessageBox::Ok);
         MsgBox.setDefaultButton(QMessageBox::Ok);
         if ( MsgBox.exec() == QMessageBox::Ok ){
-            memcpy(sdata, "6", 1);
+            sdata[0] = '6';
+            sdata[1] ='\t';
+            strcat(sdata, ui->devTable->item(index, 0)->text().toStdString().c_str());
+            sdata[strlen(sdata)] = '\t';
             send_data(client_sock, sdata);
         }
     }
