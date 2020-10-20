@@ -25,12 +25,12 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    int broad_attack_run = false;
     int client_sock;
     Thread * thread;
     char data[BUF_SIZE];
     char buf[BUF_SIZE];
     QList<QPushButton *> unicast_btn_list;
+    QPushButton* btn_attack;
 
 public slots:
     void braodAttack();

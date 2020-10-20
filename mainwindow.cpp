@@ -1,6 +1,30 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+std::vector<int> unicast_check;
+int broadcast_check;
+
+//void * btn_check_thread(void * i){
+
+//    if(broadcast_check == 1){
+//        for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
+//        {
+//            (*it)->setEnabled(0);
+//        }
+//    }else{
+//        for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
+//        {
+//            (*it)->setEnabled(1);
+//        }
+//    }
+
+//    if(unicast_check.empty()){
+//        btn_attack->setEnabled(1);
+//    }else {
+//        btn_attack->setEnabled(0);
+//    }
+//}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -25,15 +49,15 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     if(ret == 0){
-                char msg[20] = {0,};
-                QMessageBox MsgBox;
-                MsgBox.setWindowTitle("Error");
-                MsgBox.setText("Server is not running");
-                MsgBox.setStandardButtons(QMessageBox::Ok);
-                MsgBox.setDefaultButton(QMessageBox::Ok);
-                if ( MsgBox.exec() == QMessageBox::Ok ){
-                    exit(1);
-                }
+        char msg[20] = {0,};
+        QMessageBox MsgBox;
+        MsgBox.setWindowTitle("Error");
+        MsgBox.setText("Server is not running");
+        MsgBox.setStandardButtons(QMessageBox::Ok);
+        MsgBox.setDefaultButton(QMessageBox::Ok);
+        if ( MsgBox.exec() == QMessageBox::Ok ){
+            exit(1);
+        }
     }
 
     /* Get basic informations */
@@ -72,10 +96,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->gwTable->setItem(0, 0, new QTableWidgetItem(iface_name));
     ui->gwTable->setItem(0, 1, new QTableWidgetItem(str_gw_ip));
 
-    QPushButton* btn_edit = new QPushButton();
-    btn_edit->setText("Attack");
-    QObject::connect(btn_edit, &QPushButton::clicked, this, &MainWindow::braodAttack);
-    ui->gwTable->setCellWidget(0, 2,(QWidget*)btn_edit);
+    btn_attack = new QPushButton();
+    btn_attack->setText("Attack");
+    QObject::connect(btn_attack, &QPushButton::clicked, this, &MainWindow::braodAttack);
+    ui->gwTable->setCellWidget(0, 2,(QWidget*)btn_attack);
 
     QStringList tableHeader2;
     tableHeader2 << "MAC" << "IP" << "Attack";
@@ -105,7 +129,6 @@ MainWindow::MainWindow(QWidget *parent)
     memset(buf, 0x00, BUF_SIZE);
     memcpy(buf, "3", 1);
     send_data(client_sock, buf);
-
 }
 
 MainWindow::~MainWindow()
@@ -119,8 +142,9 @@ void MainWindow::braodAttack(){
     QPushButton * pb = (QPushButton *)sender();
     char sdata[BUF_SIZE];
     memset(sdata, 0x00, BUF_SIZE);
+
     if (pb->text() == "Attack"){
-        broad_attack_run = true;
+        broadcast_check = true;
         pb->setText("Stop");
 
         QMessageBox MsgBox;
@@ -132,13 +156,9 @@ void MainWindow::braodAttack(){
             memcpy(sdata, "2", 1);
             send_data(client_sock, sdata);
         }
-        for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
-        {
-            (*it)->setEnabled(0);
-        }
     } else {
         pb->setText("Attack");
-        broad_attack_run = false;
+        broadcast_check = false;
 
         QMessageBox MsgBox;
         MsgBox.setWindowTitle("Attack Stop");
@@ -148,10 +168,6 @@ void MainWindow::braodAttack(){
         if ( MsgBox.exec() == QMessageBox::Ok ){
             memcpy(sdata, "5", 1);
             send_data(client_sock, sdata);
-        }
-        for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
-        {
-            (*it)->setEnabled(1);
         }
     }
 }
@@ -163,7 +179,7 @@ void MainWindow::unicastAttack(){
 
     memset(sdata, 0x00, BUF_SIZE);
     if (pb->text() == "Attack"){
-        //broad_attack_run = true;
+        unicast_check.push_back(1);
         pb->setText("Stop");
 
         QMessageBox MsgBox;
@@ -182,7 +198,7 @@ void MainWindow::unicastAttack(){
         }
     } else {
         pb->setText("Attack");
-        //broad_attack_run = false;
+        unicast_check.pop_back();
 
         QMessageBox MsgBox;
         MsgBox.setWindowTitle("Unicast attack stop");
@@ -219,12 +235,6 @@ void MainWindow::processCaptured(char* data)
 
         ui->devTable->setCellWidget(index, 2, (QWidget*)btn_attack);
         QObject::connect(btn_attack, &QPushButton::clicked, this, &MainWindow::unicastAttack);
-        if(broad_attack_run == 1){
-            for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
-            {
-                (*it)->setEnabled(0);
-            }
-        }
     }
 
 
