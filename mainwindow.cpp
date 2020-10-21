@@ -4,27 +4,6 @@
 std::vector<int> unicast_check;
 int broadcast_check;
 
-//void * btn_check_thread(void * i){
-
-//    if(broadcast_check == 1){
-//        for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
-//        {
-//            (*it)->setEnabled(0);
-//        }
-//    }else{
-//        for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
-//        {
-//            (*it)->setEnabled(1);
-//        }
-//    }
-
-//    if(unicast_check.empty()){
-//        btn_attack->setEnabled(1);
-//    }else {
-//        btn_attack->setEnabled(0);
-//    }
-//}
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -137,7 +116,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
 void MainWindow::braodAttack(){
     QPushButton * pb = (QPushButton *)sender();
     char sdata[BUF_SIZE];
@@ -156,6 +134,12 @@ void MainWindow::braodAttack(){
             memcpy(sdata, "2", 1);
             send_data(client_sock, sdata);
         }
+
+        for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
+        {
+            (*it)->setEnabled(0);
+        }
+
     } else {
         pb->setText("Attack");
         broadcast_check = false;
@@ -168,6 +152,10 @@ void MainWindow::braodAttack(){
         if ( MsgBox.exec() == QMessageBox::Ok ){
             memcpy(sdata, "5", 1);
             send_data(client_sock, sdata);
+        }
+        for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
+        {
+            (*it)->setEnabled(1);
         }
     }
 }
@@ -196,6 +184,7 @@ void MainWindow::unicastAttack(){
             sdata[strlen(sdata)] = '\t';
             send_data(client_sock, sdata);
         }
+        btn_attack->setEnabled(0);
     } else {
         pb->setText("Attack");
         unicast_check.pop_back();
@@ -211,6 +200,9 @@ void MainWindow::unicastAttack(){
             strcat(sdata, ui->devTable->item(index, 0)->text().toStdString().c_str());
             sdata[strlen(sdata)] = '\t';
             send_data(client_sock, sdata);
+        }
+        if(unicast_check.empty()){
+            btn_attack->setEnabled(1);
         }
     }
 
