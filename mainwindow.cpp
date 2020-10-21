@@ -4,6 +4,16 @@
 std::vector<int> unicast_check;
 int broadcast_check;
 
+class MyScrollBar : public QScrollBar
+{
+public:
+    MyScrollBar(QWidget * parent): QScrollBar(parent) {}
+
+protected:
+    QSize sizeHint() const override { return QSize(80, 0); }
+    QSize minimumSizeHint() const override { return QSize(80, 0); }
+};
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -63,30 +73,56 @@ MainWindow::MainWindow(QWidget *parent)
     my_ip = inet_addr(str_my_ip);
 
     QStringList tableHeader;
-    tableHeader << "Interface" << "GW IP" << "Broadcast Attack";
+    tableHeader << "Interface" << "GW IP" << "**";
     ui->gwTable->setColumnCount(3);
     ui->gwTable->setHorizontalHeaderLabels(tableHeader);
-    ui->gwTable->horizontalHeader()->setStretchLastSection(true);
-
-    ui->gwTable->setColumnWidth(1, 400);
-    //    ui->gwTable->setRowHeight(0, 150);
+    ui->gwTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    ui->gwTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->gwTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+#ifdef Q_OS_ANDROID
+    ui->gwTable->setColumnWidth(0, 300);
+    ui->gwTable->setColumnWidth(2, 150);
+#else
+    ui->gwTable->setColumnWidth(1, 180); // Set MAC size
+    ui->gwTable->setColumnWidth(2, 80); // Set SELECT size
+#endif // Q_OS_ANDROID
 
     ui->gwTable->insertRow(ui->gwTable->rowCount()); // Row를 추가합니다.
     ui->gwTable->setItem(0, 0, new QTableWidgetItem(iface_name));
     ui->gwTable->setItem(0, 1, new QTableWidgetItem(str_gw_ip));
 
     btn_attack = new QPushButton();
-    btn_attack->setText("Attack");
+    btn_attack->setText("**");
     QObject::connect(btn_attack, &QPushButton::clicked, this, &MainWindow::braodAttack);
     ui->gwTable->setCellWidget(0, 2,(QWidget*)btn_attack);
 
     QStringList tableHeader2;
-    tableHeader2 << "MAC" << "IP" << "Attack";
+    tableHeader2 << "MAC" << "IP" << "**";
     ui->devTable->setColumnCount(3);
     ui->devTable->setHorizontalHeaderLabels(tableHeader2); // Table Header 설정
-    ui->devTable->horizontalHeader()->setStretchLastSection(true);
-    ui->devTable->setColumnWidth(0, 400);
+    ui->devTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->devTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+    ui->devTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+#ifdef Q_OS_ANDROID
     ui->devTable->setColumnWidth(1, 400);
+    ui->devTable->setColumnWidth(2, 150);
+#else
+    ui->devTable->setColumnWidth(1, 180); // Set MAC size
+    ui->devTable->setColumnWidth(2, 80); // Set SELECT size
+#endif // Q_OS_ANDROID
+
+    const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont); // Use system fixed width font
+    ui->gwTable->setFont(fixedFont);
+    ui->devTable->setFont(fixedFont);
+
+    ui->gwTable->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn); // Always show scroll bar
+    ui->devTable->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn); // Always show scroll bar
+    ui->gwTable->setEditTriggers(QAbstractItemView::NoEditTriggers); // Disable editing
+    ui->devTable->setEditTriggers(QAbstractItemView::NoEditTriggers); // Disable editing
+
+#ifdef Q_OS_ANDROID
+    ui->devTable->setVerticalScrollBar(new MyScrollBar(ui->devTable->verticalScrollBar()));
+#endif // Q_OS_ANDROID
 
 
     int server_port = 1234;
@@ -221,7 +257,7 @@ void MainWindow::processCaptured(char* data)
         ui->devTable->setItem(index, 1, new QTableWidgetItem(info[2]));
         QPushButton* btn_attack = new QPushButton();
 
-        btn_attack->setText("Attack");
+        btn_attack->setText("**");
         btn_attack->setProperty("my_key", index);
         unicast_btn_list.append(btn_attack);
 

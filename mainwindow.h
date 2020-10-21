@@ -5,6 +5,8 @@
 #include <QTableWidget>
 #include <QPushButton>
 #include <QTimer>
+#include <QFontDatabase>
+#include <QScrollBar>
 #include <QMessageBox>
 #include <sys/socket.h>
 #include <netinet/in.h>
