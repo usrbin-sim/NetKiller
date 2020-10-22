@@ -13,30 +13,36 @@ void get_iface_name(char * iface_name){
     }
 }
 
-void get_gw_ip(char * gw_ip){
+bool get_gw_ip(char * gw_ip){
     // gateway ip
-    char output[50] = {0,};
+    char output[100] = {0,};
     FILE * stream = popen("ip route get 8.8.8.8", "r");
 
-    fgets(output, 50, stream);
+    fgets(output, 100, stream);
+
+    // Check Network
+    if(strcmp(output, "") == 0){
+        return false;
+    }
 
     char *ptr = strtok(output, " ");
     int i = 0;
     while (ptr != nullptr){
         if(i == 2){
             strcpy(gw_ip, ptr);
-            return;
+            break;
         }
         i++;
         ptr = strtok(nullptr, " ");
     }
+    return true;
 }
 
 void get_my_ip(char * my_ip){
-    char output[80] = {0,};
+    char output[100] = {0,};
     FILE * stream = popen("ip route get 8.8.8.8", "r");
 
-    fgets(output, 80, stream);
+    fgets(output, 100, stream);
 
     char *ptr = strtok(output, " ");
     int i = 0;

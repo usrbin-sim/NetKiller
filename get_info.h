@@ -10,7 +10,7 @@
 #include <net/if.h>
 
 void get_iface_name(char * iface_name);
-void get_gw_ip(char * gw_ip);
+bool get_gw_ip(char * gw_ip);
 void get_my_ip(char * my_ip);
 void get_my_mac(uint8_t * mac, char * dev);
 

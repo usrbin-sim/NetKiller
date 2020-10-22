@@ -10,8 +10,8 @@ public:
     MyScrollBar(QWidget * parent): QScrollBar(parent) {}
 
 protected:
-    QSize sizeHint() const override { return QSize(80, 0); }
-    QSize minimumSizeHint() const override { return QSize(80, 0); }
+    QSize sizeHint() const override { return QSize(60, 0); }
+    QSize minimumSizeHint() const override { return QSize(60, 0); }
 };
 
 MainWindow::MainWindow(QWidget *parent)
@@ -63,7 +63,17 @@ MainWindow::MainWindow(QWidget *parent)
     /* 3. gateway IP */
     char str_gw_ip[30] = { 0, };
     uint32_t gw_ip;
-    get_gw_ip(str_gw_ip);
+    bool network_check = get_gw_ip(str_gw_ip);
+    if(!network_check){
+        QMessageBox MsgBox;
+        MsgBox.setWindowTitle("Network unreachable!");
+        MsgBox.setText("Check Wifi first.");
+        MsgBox.setStandardButtons(QMessageBox::Ok);
+        MsgBox.setDefaultButton(QMessageBox::Ok);
+        if ( MsgBox.exec() == QMessageBox::Ok ){
+            exit(1);
+        }
+    }
     gw_ip = inet_addr(str_gw_ip);
 
     /* 4. My IP */
@@ -73,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent)
     my_ip = inet_addr(str_my_ip);
 
     QStringList tableHeader;
-    tableHeader << "Interface" << "GW IP" << "**";
+    tableHeader << "Interface" << "GW IP" << ":D";
     ui->gwTable->setColumnCount(3);
     ui->gwTable->setHorizontalHeaderLabels(tableHeader);
     ui->gwTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
@@ -92,12 +102,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->gwTable->setItem(0, 1, new QTableWidgetItem(str_gw_ip));
 
     btn_attack = new QPushButton();
-    btn_attack->setText("**");
+    btn_attack->setText(":)");
     QObject::connect(btn_attack, &QPushButton::clicked, this, &MainWindow::braodAttack);
     ui->gwTable->setCellWidget(0, 2,(QWidget*)btn_attack);
 
     QStringList tableHeader2;
-    tableHeader2 << "MAC" << "IP" << "**";
+    tableHeader2 << "MAC" << "IP" << ":D";
     ui->devTable->setColumnCount(3);
     ui->devTable->setHorizontalHeaderLabels(tableHeader2); // Table Header 설정
     ui->devTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
@@ -121,6 +131,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->devTable->setEditTriggers(QAbstractItemView::NoEditTriggers); // Disable editing
 
 #ifdef Q_OS_ANDROID
+    ui->gwTable->setVerticalScrollBar(new MyScrollBar(ui->gwTable->verticalScrollBar()));
     ui->devTable->setVerticalScrollBar(new MyScrollBar(ui->devTable->verticalScrollBar()));
 #endif // Q_OS_ANDROID
 
@@ -157,9 +168,9 @@ void MainWindow::braodAttack(){
     char sdata[BUF_SIZE];
     memset(sdata, 0x00, BUF_SIZE);
 
-    if (pb->text() == "Attack"){
+    if (pb->text() == ":)"){
         broadcast_check = true;
-        pb->setText("Stop");
+        pb->setText(":(");
 
         QMessageBox MsgBox;
         MsgBox.setWindowTitle("Attack Start");
@@ -177,7 +188,7 @@ void MainWindow::braodAttack(){
         }
 
     } else {
-        pb->setText("Attack");
+        pb->setText(":)");
         broadcast_check = false;
 
         QMessageBox MsgBox;
@@ -202,9 +213,9 @@ void MainWindow::unicastAttack(){
     int index = pb->property("my_key").toInt();
 
     memset(sdata, 0x00, BUF_SIZE);
-    if (pb->text() == "Attack"){
+    if (pb->text() == ":)"){
         unicast_check.push_back(1);
-        pb->setText("Stop");
+        pb->setText(":(");
 
         QMessageBox MsgBox;
         MsgBox.setWindowTitle("Unicast attack start");
@@ -222,7 +233,7 @@ void MainWindow::unicastAttack(){
         }
         btn_attack->setEnabled(0);
     } else {
-        pb->setText("Attack");
+        pb->setText(":)");
         unicast_check.pop_back();
 
         QMessageBox MsgBox;
@@ -257,7 +268,7 @@ void MainWindow::processCaptured(char* data)
         ui->devTable->setItem(index, 1, new QTableWidgetItem(info[2]));
         QPushButton* btn_attack = new QPushButton();
 
-        btn_attack->setText("**");
+        btn_attack->setText(":)");
         btn_attack->setProperty("my_key", index);
         unicast_btn_list.append(btn_attack);
 
