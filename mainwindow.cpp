@@ -94,18 +94,18 @@ MainWindow::MainWindow(QWidget *parent)
 
 #ifdef Q_OS_ANDROID
     ui->gwTable->setColumnWidth(0, 300);
-    ui->gwTable->setColumnWidth(2, 200);
+    ui->gwTable->setColumnWidth(2, 150);
 #else
     ui->gwTable->setColumnWidth(1, 180); // Set MAC size
-    ui->gwTable->setColumnWidth(2, 80); // Set SELECT size
+    ui->gwTable->setColumnWidth(2, 50); // Set SELECT size
 #endif // Q_OS_ANDROID
 
 #ifdef Q_OS_ANDROID
     ui->devTable->setColumnWidth(1, 350);
-    ui->devTable->setColumnWidth(2, 200);
+    ui->devTable->setColumnWidth(2, 150);
 #else
     ui->devTable->setColumnWidth(1, 180); // Set MAC size
-    ui->devTable->setColumnWidth(2, 80); // Set SELECT size
+    ui->devTable->setColumnWidth(2, 50); // Set SELECT size
 #endif // Q_OS_ANDROID
 
 #ifdef Q_OS_ANDROID
@@ -122,8 +122,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->gwTable->setEditTriggers(QAbstractItemView::NoEditTriggers); // Disable editing
     ui->devTable->setEditTriggers(QAbstractItemView::NoEditTriggers); // Disable editing
 
-    tableHeader << "Interface" << "GW IP" << "Select";
-    tableHeader2 << "MAC" << "IP" << "Select";
+    tableHeader << "Interface" << "GW IP" << "attack";
+    tableHeader2 << "MAC" << "IP" << "attack";
 
     ui->gwTable->setHorizontalHeaderLabels(tableHeader);
     ui->gwTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
