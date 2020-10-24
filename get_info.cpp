@@ -38,6 +38,33 @@ bool get_gw_ip(char * gw_ip){
     return true;
 }
 
+uint32_t get_subnet(char * dev)
+{
+    int sock;
+    struct ifreq ifr;
+    struct sockaddr_in *sin;
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (sock < 0) {
+        return 0;
+    }
+
+
+    strcpy(ifr.ifr_name, dev);
+    if (ioctl(sock, SIOCGIFNETMASK, &ifr)< 0)
+    {
+        close(sock);
+        return 0;
+    }
+
+    sin = (struct sockaddr_in*)&ifr.ifr_addr;
+    uint32_t subnet_mask = sin->sin_addr.s_addr;
+    close(sock);
+
+    return subnet_mask;
+}
+
 void get_my_ip(char * my_ip){
     char output[100] = {0,};
     FILE * stream = popen("ip route get 8.8.8.8", "r");

@@ -4,8 +4,10 @@
 #include <QMainWindow>
 #include <QTableWidget>
 #include <QPushButton>
+#include <QIcon>
 #include <QTimer>
 #include <QFontDatabase>
+#include <QToolButton>
 #include <QScrollBar>
 #include <QMessageBox>
 #include <sys/socket.h>
@@ -33,6 +35,8 @@ public:
     char buf[BUF_SIZE];
     QList<QPushButton *> unicast_btn_list;
     QPushButton* btn_attack;
+    bool is_broad = false;
+    std::vector<bool> is_unicast;
 
 public slots:
     void braodAttack();

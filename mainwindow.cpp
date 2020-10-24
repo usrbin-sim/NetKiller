@@ -38,7 +38,6 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     if(ret == 0){
-        char msg[20] = {0,};
         QMessageBox MsgBox;
         MsgBox.setWindowTitle("Error");
         MsgBox.setText("Server is not running");
@@ -82,43 +81,36 @@ MainWindow::MainWindow(QWidget *parent)
     get_my_ip(str_my_ip);
     my_ip = inet_addr(str_my_ip);
 
+    /* 5. Get Subnetmask */
+    uint32_t subnet = get_subnet(iface_name);
+    char str_subnet[30] {0, };
+    sprintf(str_subnet, "%d.%d.%d.%d\n", (subnet)&0xFF, (subnet >> 8) & 0xFF, (subnet >> 16) & 0xFF, (subnet >> 24) & 0xFF);
+
     QStringList tableHeader;
-    tableHeader << "Interface" << "GW IP" << ":D";
+    QStringList tableHeader2;
     ui->gwTable->setColumnCount(3);
-    ui->gwTable->setHorizontalHeaderLabels(tableHeader);
-    ui->gwTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-    ui->gwTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    ui->gwTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+    ui->devTable->setColumnCount(3);
+
+
 #ifdef Q_OS_ANDROID
     ui->gwTable->setColumnWidth(0, 300);
-    ui->gwTable->setColumnWidth(2, 150);
+    ui->gwTable->setColumnWidth(2, 200);
 #else
     ui->gwTable->setColumnWidth(1, 180); // Set MAC size
     ui->gwTable->setColumnWidth(2, 80); // Set SELECT size
 #endif // Q_OS_ANDROID
 
-    ui->gwTable->insertRow(ui->gwTable->rowCount()); // Row를 추가합니다.
-    ui->gwTable->setItem(0, 0, new QTableWidgetItem(iface_name));
-    ui->gwTable->setItem(0, 1, new QTableWidgetItem(str_gw_ip));
-
-    btn_attack = new QPushButton();
-    btn_attack->setText(":)");
-    QObject::connect(btn_attack, &QPushButton::clicked, this, &MainWindow::braodAttack);
-    ui->gwTable->setCellWidget(0, 2,(QWidget*)btn_attack);
-
-    QStringList tableHeader2;
-    tableHeader2 << "MAC" << "IP" << ":D";
-    ui->devTable->setColumnCount(3);
-    ui->devTable->setHorizontalHeaderLabels(tableHeader2); // Table Header 설정
-    ui->devTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    ui->devTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-    ui->devTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
 #ifdef Q_OS_ANDROID
-    ui->devTable->setColumnWidth(1, 400);
-    ui->devTable->setColumnWidth(2, 150);
+    ui->devTable->setColumnWidth(1, 350);
+    ui->devTable->setColumnWidth(2, 200);
 #else
     ui->devTable->setColumnWidth(1, 180); // Set MAC size
     ui->devTable->setColumnWidth(2, 80); // Set SELECT size
+#endif // Q_OS_ANDROID
+
+#ifdef Q_OS_ANDROID
+    ui->gwTable->setVerticalScrollBar(new MyScrollBar(ui->gwTable->verticalScrollBar()));
+    ui->devTable->setVerticalScrollBar(new MyScrollBar(ui->devTable->verticalScrollBar()));
 #endif // Q_OS_ANDROID
 
     const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont); // Use system fixed width font
@@ -130,15 +122,53 @@ MainWindow::MainWindow(QWidget *parent)
     ui->gwTable->setEditTriggers(QAbstractItemView::NoEditTriggers); // Disable editing
     ui->devTable->setEditTriggers(QAbstractItemView::NoEditTriggers); // Disable editing
 
-#ifdef Q_OS_ANDROID
-    ui->gwTable->setVerticalScrollBar(new MyScrollBar(ui->gwTable->verticalScrollBar()));
-    ui->devTable->setVerticalScrollBar(new MyScrollBar(ui->devTable->verticalScrollBar()));
-#endif // Q_OS_ANDROID
+    tableHeader << "Interface" << "GW IP" << "Select";
+    tableHeader2 << "MAC" << "IP" << "Select";
 
+    ui->gwTable->setHorizontalHeaderLabels(tableHeader);
+    ui->gwTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    ui->gwTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->gwTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+
+    ui->gwTable->verticalHeader()->setDefaultSectionSize(80); // height
+    ui->gwTable->verticalHeader()->sectionResizeMode(QHeaderView::Fixed);
+
+    ui->gwTable->insertRow(ui->gwTable->rowCount());
+    QTableWidgetItem * iface_name_item = new QTableWidgetItem(iface_name);
+    iface_name_item->setTextAlignment(Qt::AlignCenter);
+    QTableWidgetItem * gw_ip_item = new QTableWidgetItem(str_gw_ip);
+    gw_ip_item->setTextAlignment(Qt::AlignCenter);
+    ui->gwTable->setItem(0, 0, iface_name_item);
+    ui->gwTable->setItem(0, 1, gw_ip_item);
+
+    btn_attack = new QPushButton(this);
+
+    btn_attack->setIcon(QIcon(":/images/start.png"));
+    btn_attack->setIconSize(QSize(70,70));
+    is_broad = false;
+
+    QObject::connect(btn_attack, &QPushButton::clicked, this, &MainWindow::braodAttack);
+    ui->gwTable->setCellWidget(0, 2,(QWidget*)btn_attack);
+
+    ui->devTable->setHorizontalHeaderLabels(tableHeader2);
+    ui->devTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->devTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+    ui->devTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+
+    ui->devTable->verticalHeader()->setDefaultSectionSize(80); // height
+    ui->devTable->verticalHeader()->sectionResizeMode(QHeaderView::Fixed);
 
     int server_port = 1234;
     if(!connect_sock(&client_sock, server_port)){
 
+        QMessageBox MsgBox;
+        MsgBox.setWindowTitle("Socket failed");
+        MsgBox.setText("Socket creation failed. plz restart.");
+        MsgBox.setStandardButtons(QMessageBox::Ok);
+        MsgBox.setDefaultButton(QMessageBox::Ok);
+        if ( MsgBox.exec() == QMessageBox::Ok ){
+            exit(1);
+        }
     }
 
     thread = new Thread(client_sock);
@@ -155,6 +185,7 @@ MainWindow::MainWindow(QWidget *parent)
     memset(buf, 0x00, BUF_SIZE);
     memcpy(buf, "3", 1);
     send_data(client_sock, buf);
+
 }
 
 MainWindow::~MainWindow()
@@ -168,41 +199,42 @@ void MainWindow::braodAttack(){
     char sdata[BUF_SIZE];
     memset(sdata, 0x00, BUF_SIZE);
 
-    if (pb->text() == ":)"){
-        broadcast_check = true;
-        pb->setText(":(");
-
+    if (is_broad == false){
         QMessageBox MsgBox;
         MsgBox.setWindowTitle("Attack Start");
         MsgBox.setText("broadcast attack started!");
-        MsgBox.setStandardButtons(QMessageBox::Ok);
+        MsgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
         MsgBox.setDefaultButton(QMessageBox::Ok);
         if ( MsgBox.exec() == QMessageBox::Ok ){
+            broadcast_check = true;
+            pb->setIcon(QIcon(":/images/stop.png"));
+            pb->setIconSize(QSize(70,70));
+
             memcpy(sdata, "2", 1);
             send_data(client_sock, sdata);
+            is_broad = true;
+            for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
+            {
+                (*it)->setEnabled(0);
+            }
         }
-
-        for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
-        {
-            (*it)->setEnabled(0);
-        }
-
     } else {
-        pb->setText(":)");
-        broadcast_check = false;
-
         QMessageBox MsgBox;
         MsgBox.setWindowTitle("Attack Stop");
         MsgBox.setText("broadcast attack stop.");
-        MsgBox.setStandardButtons(QMessageBox::Ok);
+        MsgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
         MsgBox.setDefaultButton(QMessageBox::Ok);
         if ( MsgBox.exec() == QMessageBox::Ok ){
+            pb->setIcon(QIcon(":/images/start.png"));
+            pb->setIconSize(QSize(70,70));
+            broadcast_check = false;
             memcpy(sdata, "5", 1);
             send_data(client_sock, sdata);
-        }
-        for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
-        {
-            (*it)->setEnabled(1);
+            is_broad = false;
+            for(auto it = unicast_btn_list.begin(); it != unicast_btn_list.end(); it++)
+            {
+                (*it)->setEnabled(1);
+            }
         }
     }
 }
@@ -213,16 +245,18 @@ void MainWindow::unicastAttack(){
     int index = pb->property("my_key").toInt();
 
     memset(sdata, 0x00, BUF_SIZE);
-    if (pb->text() == ":)"){
-        unicast_check.push_back(1);
-        pb->setText(":(");
-
+    if (is_unicast[index] == false){
         QMessageBox MsgBox;
         MsgBox.setWindowTitle("Unicast attack start");
         MsgBox.setText(ui->devTable->item(index, 0)->text());
-        MsgBox.setStandardButtons(QMessageBox::Ok);
+        MsgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
         MsgBox.setDefaultButton(QMessageBox::Ok);
         if ( MsgBox.exec() == QMessageBox::Ok ){
+            unicast_check.push_back(1);
+
+            pb->setIcon(QIcon(":/images/stop.png"));
+            pb->setIconSize(QSize(70,70));
+
             sdata[0] = '4';
             sdata[1] = '\t';
             strcat(sdata, ui->devTable->item(index, 0)->text().toStdString().c_str());
@@ -230,23 +264,26 @@ void MainWindow::unicastAttack(){
             strcat(sdata, ui->devTable->item(index, 1)->text().toStdString().c_str());
             sdata[strlen(sdata)] = '\t';
             send_data(client_sock, sdata);
+            btn_attack->setEnabled(0);
+            is_unicast[index] = true;
         }
-        btn_attack->setEnabled(0);
     } else {
-        pb->setText(":)");
-        unicast_check.pop_back();
-
         QMessageBox MsgBox;
         MsgBox.setWindowTitle("Unicast attack stop");
         MsgBox.setText(ui->devTable->item(index, 0)->text());
-        MsgBox.setStandardButtons(QMessageBox::Ok);
+        MsgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
         MsgBox.setDefaultButton(QMessageBox::Ok);
         if ( MsgBox.exec() == QMessageBox::Ok ){
+            pb->setIcon(QIcon(":/images/start.png"));
+            pb->setIconSize(QSize(70,70));
+
+            unicast_check.pop_back();
             sdata[0] = '6';
             sdata[1] ='\t';
             strcat(sdata, ui->devTable->item(index, 0)->text().toStdString().c_str());
             sdata[strlen(sdata)] = '\t';
             send_data(client_sock, sdata);
+            is_unicast[index] = false;
         }
         if(unicast_check.empty()){
             btn_attack->setEnabled(1);
@@ -264,13 +301,20 @@ void MainWindow::processCaptured(char* data)
         ui->devTable->insertRow(ui->devTable->rowCount());
         int index = ui->devTable->rowCount() - 1;
 
-        ui->devTable->setItem(index, 0, new QTableWidgetItem(info[1]));
-        ui->devTable->setItem(index, 1, new QTableWidgetItem(info[2]));
+        QTableWidgetItem * mac = new QTableWidgetItem(info[1]);
+        mac->setTextAlignment(Qt::AlignCenter);
+        QTableWidgetItem * ip = new QTableWidgetItem(info[2]);
+        ip->setTextAlignment(Qt::AlignCenter);
+        ui->devTable->setItem(index, 0, mac);
+        ui->devTable->setItem(index, 1, ip);
         QPushButton* btn_attack = new QPushButton();
 
-        btn_attack->setText(":)");
+        btn_attack->setIcon(QIcon(":/images/start.png"));
+        btn_attack->setIconSize(QSize(70,70));
+
         btn_attack->setProperty("my_key", index);
         unicast_btn_list.append(btn_attack);
+        is_unicast.push_back(false);
 
         ui->devTable->setCellWidget(index, 2, (QWidget*)btn_attack);
         QObject::connect(btn_attack, &QPushButton::clicked, this, &MainWindow::unicastAttack);

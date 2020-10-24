@@ -31,3 +31,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 INCLUDEPATH += /root/android/sdk/ndk/21.1.6352462/sysroot/usr/include
 
+RESOURCES += \
+    icons.qrc
+
