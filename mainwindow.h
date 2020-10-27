@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTableWidget>
 #include <QPushButton>
+#include <QProcess>
 #include <QIcon>
 #include <QTimer>
 #include <QFontDatabase>
@@ -37,6 +38,7 @@ public:
     QPushButton* btn_attack;
     bool is_broad = false;
     std::vector<bool> is_unicast;
+    QProcess * elf_daemon;
 
 public slots:
     void braodAttack();
