@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QProcess>
 #include <QIcon>
+#include <QFile>
 #include <QTimer>
 #include <QFontDatabase>
 #include <QToolButton>
@@ -38,7 +39,6 @@ public:
     QPushButton* btn_attack;
     bool is_broad = false;
     std::vector<bool> is_unicast;
-    QProcess * elf_daemon;
 
 public slots:
     void braodAttack();

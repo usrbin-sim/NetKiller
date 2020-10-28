@@ -25,11 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     timer->start();
     timer->setInterval(1000);
 
-    //system("su -c \"/data/local/tmp/netkillerd&\"");
-    //system("qrc:/bin/netkillerd&");
-    QString elf_path = ":/bin/netkillerd";
-    elf_daemon = new QProcess(this);
-    elf_daemon->start(elf_path);
+    system("su -c \"/data/local/tmp/netkillerd&\"");
 
     // Check if server is running
     char tmp_buf[1024] = {0,};

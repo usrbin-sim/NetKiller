@@ -33,7 +33,7 @@ INCLUDEPATH += /root/android/sdk/ndk/21.1.6352462/sysroot/usr/include
 
 RESOURCES += \
     bin.qrc \
-    icons.qrc
+    icon.qrc
 
 DISTFILES += \
     android/AndroidManifest.xml \
