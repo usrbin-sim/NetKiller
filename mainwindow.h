@@ -51,5 +51,7 @@ private:
 
 signals:
     void addDev();
+private slots:
+    void on_scanBtn_clicked();
 };
 #endif // MAINWINDOW_H

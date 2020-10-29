@@ -2,7 +2,7 @@
 #include "ui_mainwindow.h"
 
 std::vector<int> unicast_check;
-int broadcast_check;
+bool broadcast_check;
 
 class MyScrollBar : public QScrollBar
 {
@@ -298,27 +298,48 @@ void MainWindow::processCaptured(char* data)
     QStringList info = temp.split("\t");
 
     if(info[0] == '3'){
-        ui->devTable->insertRow(ui->devTable->rowCount());
-        int index = ui->devTable->rowCount() - 1;
 
-        QTableWidgetItem * mac = new QTableWidgetItem(info[1]);
-        mac->setTextAlignment(Qt::AlignCenter);
-        QTableWidgetItem * ip = new QTableWidgetItem(info[2]);
-        ip->setTextAlignment(Qt::AlignCenter);
-        ui->devTable->setItem(index, 0, mac);
-        ui->devTable->setItem(index, 1, ip);
-        QPushButton* btn_attack = new QPushButton();
+        bool is_only = true;
 
-        btn_attack->setIcon(QIcon(":/images/start.png"));
-        btn_attack->setIconSize(QSize(70,70));
+        for (int i=0; i<ui->devTable->rowCount(); i++)  // delete duplicated row
+        {
+            if(ui->devTable->item(i, 0)->text() == info[1] && ui->devTable->item(i,1)->text() == info[2])
+            {
+                is_only = false;
+                break;
+            }
+        }
+        if(is_only){
+            ui->devTable->insertRow(ui->devTable->rowCount());
+            int index = ui->devTable->rowCount() - 1;
 
-        btn_attack->setProperty("my_key", index);
-        unicast_btn_list.append(btn_attack);
-        is_unicast.push_back(false);
+            QTableWidgetItem * mac = new QTableWidgetItem(info[1]);
+            mac->setTextAlignment(Qt::AlignCenter);
+            QTableWidgetItem * ip = new QTableWidgetItem(info[2]);
+            ip->setTextAlignment(Qt::AlignCenter);
+            ui->devTable->setItem(index, 0, mac);
+            ui->devTable->setItem(index, 1, ip);
+            QPushButton* btn_attack = new QPushButton();
 
-        ui->devTable->setCellWidget(index, 2, (QWidget*)btn_attack);
-        QObject::connect(btn_attack, &QPushButton::clicked, this, &MainWindow::unicastAttack);
+            btn_attack->setIcon(QIcon(":/images/start.png"));
+            btn_attack->setIconSize(QSize(70,70));
+
+            btn_attack->setProperty("my_key", index);
+            unicast_btn_list.append(btn_attack);
+            is_unicast.push_back(false);
+
+            ui->devTable->setCellWidget(index, 2, (QWidget*)btn_attack);
+            if(broadcast_check){
+                btn_attack->setEnabled(0);
+            }else{
+                btn_attack->setEnabled(1);
+            }
+            QObject::connect(btn_attack, &QPushButton::clicked, this, &MainWindow::unicastAttack);
+        }
     }
+}
 
+void MainWindow::on_scanBtn_clicked()
+{
 
 }
