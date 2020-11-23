@@ -20,32 +20,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    int ret = 0;
-    timer = new QTimer;
-    timer->start();
-    timer->setInterval(1000);
-
-    system("su -c \"/data/local/tmp/netkillerd&\"");
-
-    // Check if server is running
-    char tmp_buf[1024] = {0,};
-    FILE *fp = popen("su -c \"ps | grep netkillerd\"", "rt");
-    while(fgets(tmp_buf, 1024,fp)){
-        if(strstr(tmp_buf, "netkillerd") != NULL){
-            ret = 1;
-            break;
-        }
-    }
-
-    if(ret == 0){
-        QMessageBox MsgBox;
-        MsgBox.setWindowTitle("Error");
-        MsgBox.setText("Server is not running");
-        MsgBox.setStandardButtons(QMessageBox::Ok);
-        MsgBox.setDefaultButton(QMessageBox::Ok);
-        if ( MsgBox.exec() == QMessageBox::Ok ){
-            exit(1);
-        }
+    QFile sFile("assets:/netkillerd");
+    QFile dFile("./netkillerd");
+    if (!dFile.exists()) {
+        assert(sFile.exists());
+        sFile.copy("./netkillerd");
+        QFile::setPermissions("./netkillerd", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
     }
 
     /* Get basic informations */
@@ -85,6 +65,30 @@ MainWindow::MainWindow(QWidget *parent)
     uint32_t subnet = get_subnet(iface_name);
     char str_subnet[30] {0, };
     sprintf(str_subnet, "%d.%d.%d.%d\n", (subnet)&0xFF, (subnet >> 8) & 0xFF, (subnet >> 16) & 0xFF, (subnet >> 24) & 0xFF);
+
+    system("su -c \"/data/data/org.lucy.netkiller/files/netkillerd&\"");
+
+    int ret = 0;
+    // Check if server is running
+    char tmp_buf[1024] = {0,};
+    FILE *fp = popen("su -c \"ps | grep netkillerd\"", "rt");
+    while(fgets(tmp_buf, 1024,fp)){
+        if(strstr(tmp_buf, "netkillerd") != NULL){
+            ret = 1;
+            break;
+        }
+    }
+
+    if(ret == 0){
+        QMessageBox MsgBox;
+        MsgBox.setWindowTitle("Error");
+        MsgBox.setText("Server is not running");
+        MsgBox.setStandardButtons(QMessageBox::Ok);
+        MsgBox.setDefaultButton(QMessageBox::Ok);
+        if ( MsgBox.exec() == QMessageBox::Ok ){
+            exit(1);
+        }
+    }
 
     QStringList tableHeader;
     QStringList tableHeader2;
@@ -167,6 +171,7 @@ MainWindow::MainWindow(QWidget *parent)
         MsgBox.setStandardButtons(QMessageBox::Ok);
         MsgBox.setDefaultButton(QMessageBox::Ok);
         if ( MsgBox.exec() == QMessageBox::Ok ){
+            system("su -c \"killall -9 netkillerd\"");
             exit(1);
         }
     }

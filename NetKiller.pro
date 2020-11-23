@@ -32,7 +32,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 INCLUDEPATH += /root/android/sdk/ndk/21.1.6352462/sysroot/usr/include
 
 RESOURCES += \
-    bin.qrc \
     icon.qrc
 
 DISTFILES += \
@@ -48,3 +47,7 @@ contains(ANDROID_TARGET_ARCH,armeabi-v7a) {
     ANDROID_PACKAGE_SOURCE_DIR = \
         $$PWD/android
 }
+
+deployment.files += /root/lucy/NetKillerd/netkillerd
+deployment.path = /assets
+INSTALLS += deployment
