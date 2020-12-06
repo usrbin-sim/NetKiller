@@ -14,27 +14,35 @@ protected:
     QSize minimumSizeHint() const override { return QSize(60, 0); }
 };
 
+#ifdef Q_OS_ANDROID
+bool copyFileFromAssets(QString fileName, QFile::Permissions permissions) {
+    QString sourceFileName = QString("assets:/") + fileName;
+    QFile sFile(sourceFileName);
+    QFile dFile(fileName);
+    if (!dFile.exists()) {
+        if (!sFile.exists()) {
+            QString msg = QString("src file(%1) not exists").arg(sourceFileName);
+            //qDebug() << qPrintable(msg);
+            return false;
+        }
+
+        sFile.copy(fileName);
+        QFile::setPermissions(fileName, permissions);
+    }
+    return true;
+}
+#endif // Q_OS_ANDROID
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    QFile sFile("assets:/netkillerd");
-    QFile dFile("./netkillerd");
-    if (!dFile.exists()) {
-        assert(sFile.exists());
-        sFile.copy("./netkillerd");
-        QFile::setPermissions("./netkillerd", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
-    }
-
-    QFile sFile2("assets:/netkillerd.sh");
-    QFile dFile2("./netkillerd.sh");
-    if (!dFile2.exists()) {
-        assert(sFile2.exists());
-        sFile2.copy("./netkillerd.sh");
-        QFile::setPermissions("./netkillerd.sh", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
-    }
+#ifdef Q_OS_ANDROID
+    copyFileFromAssets("netkillerd.sh", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+    copyFileFromAssets("netkillerd", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+#endif // Q_OS_ANDROID
 
     /* Get basic informations */
     /* 1. interface name */
