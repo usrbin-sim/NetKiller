@@ -48,6 +48,7 @@ contains(ANDROID_TARGET_ARCH,armeabi-v7a) {
         $$PWD/android
 }
 
+deployment.files += /root/lucy/NetKiller/netkillerd.sh
 deployment.files += /root/lucy/NetKillerd/netkillerd
 deployment.path = /assets
 INSTALLS += deployment

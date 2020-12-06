@@ -28,6 +28,14 @@ MainWindow::MainWindow(QWidget *parent)
         QFile::setPermissions("./netkillerd", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
     }
 
+    QFile sFile2("assets:/netkillerd.sh");
+    QFile dFile2("./netkillerd.sh");
+    if (!dFile2.exists()) {
+        assert(sFile2.exists());
+        sFile2.copy("./netkillerd.sh");
+        QFile::setPermissions("./netkillerd.sh", QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+    }
+
     /* Get basic informations */
     /* 1. interface name */
     char iface_name[20] = { 0, };
@@ -66,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
     char str_subnet[30] {0, };
     sprintf(str_subnet, "%d.%d.%d.%d\n", (subnet)&0xFF, (subnet >> 8) & 0xFF, (subnet >> 16) & 0xFF, (subnet >> 24) & 0xFF);
 
-    system("su -c \"/data/data/org.lucy.netkiller/files/netkillerd&\"");
+    system("su -c \"/data/data/org.lucy.netkiller/files/netkillerd.sh&\"");
 
     int ret = 0;
     // Check if server is running
